@@ -10,9 +10,14 @@ import glslangModule from "../glslang";
 import { updateBufferData } from "../helpers";
 
 /**
- * This demo renders the cube into a texture that is used for rendering on screen but also for the next render, as a texture.
- * There is only one pass.
+ * This demo renders a cube into a cube, into a cube.
+ *
+ * In order to do this, the cube is rendered to the framebuffer.
+ * Then on the next render, the framebuffer is used as a texture for the same cube.
+ * There is only one render pass, as we reuse the framebuffer from the previous frame.
+ *
  * In WebGL, I think we would need two draw calls to get the same effect. The first one would render to a texture, the second one would render this texture in the framebuffer.
+ * Overall,
  */
 export const title = "Fractal Cube";
 export const description =
@@ -38,7 +43,11 @@ export async function init(canvas: HTMLCanvasElement) {
     fragColor = color;
     fragUV = uv;
   }`;
-  // surprising api with the sampler being a uniform separate from the texture. I wonder why?
+  // New stuff!
+  // sampler and textures are different now.
+  // the sampler contains the rules to mag or min the texture
+  // meanwhile the texture is just the texture.
+  // it mimics Vulkan, - the motivation for it is that the sampler rules are usually about the same in the whole app, so there is no need to duplicate it in every texture.
   const fragmentShaderGLSL = `#version 450
   layout(set = 0, binding = 1) uniform sampler mySampler;
   layout(set = 0, binding = 2) uniform texture2D myTexture;
@@ -182,6 +191,9 @@ export async function init(canvas: HTMLCanvasElement) {
 
   const depthTexture = device.createTexture({
     // depth texture needs to be explicitely created.
+    // a depth texture is used when we need to figure out which pixel is on top of which one.
+    // imagine a cube. We want the faces on the back to be behind the ones on the front.
+    // when writing the fragment/triangles, the depth buffer is used for this.
     size: { width: canvas.width, height: canvas.height, depth: 1 }, // 2d
     format: "depth24plus-stencil8",
     usage: GPUTextureUsage.OUTPUT_ATTACHMENT,
