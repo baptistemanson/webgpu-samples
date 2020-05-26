@@ -2,3 +2,4 @@ node_modules/
 gen/
 dist/
 index.html
+*.DS_Store

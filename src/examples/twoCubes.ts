@@ -1,12 +1,22 @@
-import { mat4, vec3 } from 'gl-matrix';
-import { cubeVertexArray, cubeVertexSize, cubeColorOffset, cubePositionOffset } from '../cube';
-import glslangModule from '../glslang';
-import { updateBufferData } from '../helpers';
+import { mat4, vec3 } from "gl-matrix";
+import {
+  cubeVertexArray,
+  cubeVertexSize,
+  cubeColorOffset,
+  cubePositionOffset,
+} from "../cube";
+import glslangModule from "../glslang";
+import { updateBufferData } from "../helpers";
 
-export const title = 'Two Cubes';
-export const description = 'This example shows some of the alignment requirements \
+/**
+ * This demo shows that one buffer can contain data for different bind groups.
+ * The different bind groups data can only start at a multiple of 256 offset.
+ */
+export const title = "Two Cubes";
+export const description =
+  "This example shows some of the alignment requirements \
                             involved when updating and binding multiple slices of a \
-                            uniform buffer.';
+                            uniform buffer.";
 
 export async function init(canvas: HTMLCanvasElement) {
   const vertexShaderGLSL = `#version 450
@@ -40,30 +50,34 @@ export async function init(canvas: HTMLCanvasElement) {
   let projectionMatrix = mat4.create();
   mat4.perspective(projectionMatrix, (2 * Math.PI) / 5, aspect, 1, 100.0);
 
-  const context = canvas.getContext('gpupresent');
+  const context = canvas.getContext("gpupresent");
 
   // @ts-ignore:
   const swapChain = context.configureSwapChain({
     device,
-    format: "bgra8unorm"
+    format: "bgra8unorm",
   });
 
   const [verticesBuffer, vertexMapping] = device.createBufferMapped({
     size: cubeVertexArray.byteLength,
-    usage: GPUBufferUsage.VERTEX
+    usage: GPUBufferUsage.VERTEX,
   });
   new Float32Array(vertexMapping).set(cubeVertexArray);
   verticesBuffer.unmap();
 
   const uniformsBindGroupLayout = device.createBindGroupLayout({
-    entries: [{
-      binding: 0,
-      visibility: 1,
-      type: "uniform-buffer"
-    }]
+    entries: [
+      {
+        binding: 0,
+        visibility: 1,
+        type: "uniform-buffer",
+      },
+    ],
   });
 
-  const pipelineLayout = device.createPipelineLayout({ bindGroupLayouts: [uniformsBindGroupLayout] });
+  const pipelineLayout = device.createPipelineLayout({
+    bindGroupLayouts: [uniformsBindGroupLayout],
+  });
   const pipeline = device.createRenderPipeline({
     layout: pipelineLayout,
 
@@ -73,9 +87,9 @@ export async function init(canvas: HTMLCanvasElement) {
 
         // @ts-ignore
         source: vertexShaderGLSL,
-        transform: source => glslang.compileGLSL(source, "vertex"),
+        transform: (source) => glslang.compileGLSL(source, "vertex"),
       }),
-      entryPoint: "main"
+      entryPoint: "main",
     },
     fragmentStage: {
       module: device.createShaderModule({
@@ -83,9 +97,9 @@ export async function init(canvas: HTMLCanvasElement) {
 
         // @ts-ignore
         source: fragmentShaderGLSL,
-        transform: source => glslang.compileGLSL(source, "fragment"),
+        transform: (source) => glslang.compileGLSL(source, "fragment"),
       }),
-      entryPoint: "main"
+      entryPoint: "main",
     },
 
     primitiveTopology: "triangle-list",
@@ -95,48 +109,57 @@ export async function init(canvas: HTMLCanvasElement) {
       format: "depth24plus-stencil8",
     },
     vertexState: {
-      vertexBuffers: [{
-        arrayStride: cubeVertexSize,
-        attributes: [{
-          // position
-          shaderLocation: 0,
-          offset: cubePositionOffset,
-          format: "float4"
-        }, {
-          // color
-          shaderLocation: 1,
-          offset: cubeColorOffset,
-          format: "float4"
-        }]
-      }],
+      vertexBuffers: [
+        {
+          arrayStride: cubeVertexSize,
+          attributes: [
+            {
+              // position
+              shaderLocation: 0,
+              offset: cubePositionOffset,
+              format: "float4",
+            },
+            {
+              // color
+              shaderLocation: 1,
+              offset: cubeColorOffset,
+              format: "float4",
+            },
+          ],
+        },
+      ],
     },
 
     rasterizationState: {
-      cullMode: 'back',
+      cullMode: "back",
     },
 
-    colorStates: [{
-      format: "bgra8unorm",
-    }],
+    colorStates: [
+      {
+        format: "bgra8unorm",
+      },
+    ],
   });
 
   const depthTexture = device.createTexture({
     size: {
       width: canvas.width,
       height: canvas.height,
-      depth: 1
+      depth: 1,
     },
     format: "depth24plus-stencil8",
-    usage: GPUTextureUsage.OUTPUT_ATTACHMENT
+    usage: GPUTextureUsage.OUTPUT_ATTACHMENT,
   });
 
   const renderPassDescriptor: GPURenderPassDescriptor = {
-    colorAttachments: [{
-      // attachment is acquired in render loop.
-      attachment: undefined,
+    colorAttachments: [
+      {
+        // attachment is acquired in render loop.
+        attachment: undefined,
 
-      loadValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
-    }],
+        loadValue: { r: 0.5, g: 0.5, b: 0.5, a: 1.0 },
+      },
+    ],
     depthStencilAttachment: {
       attachment: depthTexture.createView(),
 
@@ -144,10 +167,10 @@ export async function init(canvas: HTMLCanvasElement) {
       depthStoreOp: "store",
       stencilLoadValue: 0,
       stencilStoreOp: "store",
-    }
+    },
   };
 
-  const matrixSize = 4 * 16;  // 4x4 matrix
+  const matrixSize = 4 * 16; // 4x4 matrix
   const offset = 256; // uniformBindGroup offset must be 256-byte aligned
   const uniformBufferSize = offset + matrixSize;
 
@@ -158,26 +181,30 @@ export async function init(canvas: HTMLCanvasElement) {
 
   const uniformBindGroup1 = device.createBindGroup({
     layout: uniformsBindGroupLayout,
-    entries: [{
-      binding: 0,
-      resource: {
-        buffer: uniformBuffer,
-        offset: 0,
-        size: matrixSize
-      }
-    }],
+    entries: [
+      {
+        binding: 0,
+        resource: {
+          buffer: uniformBuffer,
+          offset: 0,
+          size: matrixSize,
+        },
+      },
+    ],
   });
 
   const uniformBindGroup2 = device.createBindGroup({
     layout: uniformsBindGroupLayout,
-    entries: [{
-      binding: 0,
-      resource: {
-        buffer: uniformBuffer,
-        offset: offset,
-        size: matrixSize
-      }
-    }]
+    entries: [
+      {
+        binding: 0,
+        resource: {
+          buffer: uniformBuffer,
+          offset: offset,
+          size: matrixSize,
+        },
+      },
+    ],
   });
 
   let modelMatrix1 = mat4.create();
@@ -193,26 +220,57 @@ export async function init(canvas: HTMLCanvasElement) {
   let tmpMat42 = mat4.create();
 
   function updateTransformationMatrix() {
-
     let now = Date.now() / 1000;
 
-    mat4.rotate(tmpMat41, modelMatrix1, 1, vec3.fromValues(Math.sin(now), Math.cos(now), 0));
-    mat4.rotate(tmpMat42, modelMatrix2, 1, vec3.fromValues(Math.cos(now), Math.sin(now), 0));
+    mat4.rotate(
+      tmpMat41,
+      modelMatrix1,
+      1,
+      vec3.fromValues(Math.sin(now), Math.cos(now), 0)
+    );
+    mat4.rotate(
+      tmpMat42,
+      modelMatrix2,
+      1,
+      vec3.fromValues(Math.cos(now), Math.sin(now), 0)
+    );
 
     mat4.multiply(modelViewProjectionMatrix1, viewMatrix, tmpMat41);
-    mat4.multiply(modelViewProjectionMatrix1, projectionMatrix, modelViewProjectionMatrix1);
+    mat4.multiply(
+      modelViewProjectionMatrix1,
+      projectionMatrix,
+      modelViewProjectionMatrix1
+    );
     mat4.multiply(modelViewProjectionMatrix2, viewMatrix, tmpMat42);
-    mat4.multiply(modelViewProjectionMatrix2, projectionMatrix, modelViewProjectionMatrix2);
+    mat4.multiply(
+      modelViewProjectionMatrix2,
+      projectionMatrix,
+      modelViewProjectionMatrix2
+    );
   }
 
   return function frame() {
     updateTransformationMatrix();
 
-    renderPassDescriptor.colorAttachments[0].attachment = swapChain.getCurrentTexture().createView();
+    renderPassDescriptor.colorAttachments[0].attachment = swapChain
+      .getCurrentTexture()
+      .createView();
 
     const commandEncoder = device.createCommandEncoder();
-    const { uploadBuffer: buffer1 } = updateBufferData(device, uniformBuffer, 0, modelViewProjectionMatrix1, commandEncoder);
-    const { uploadBuffer: buffer2 } = updateBufferData(device, uniformBuffer, offset, modelViewProjectionMatrix2, commandEncoder);
+    const { uploadBuffer: buffer1 } = updateBufferData(
+      device,
+      uniformBuffer,
+      0,
+      modelViewProjectionMatrix1,
+      commandEncoder
+    );
+    const { uploadBuffer: buffer2 } = updateBufferData(
+      device,
+      uniformBuffer,
+      offset,
+      modelViewProjectionMatrix2,
+      commandEncoder
+    );
 
     const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
     passEncoder.setPipeline(pipeline);
@@ -229,5 +287,5 @@ export async function init(canvas: HTMLCanvasElement) {
     device.defaultQueue.submit([commandEncoder.finish()]);
     buffer1.destroy();
     buffer2.destroy();
-  }
+  };
 }
