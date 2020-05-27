@@ -21,11 +21,15 @@ I added my comments and some design notes
 - Specs are terse and don't explain motivations around the design
 - Impossible to learn without GL knowledge right now.
 - Team is very accessible on matrix.org
+- its fast, even the client side spir v compilation was fast lol.
+- Examples are in typescript. It really helps to have types here.
 
 ## Meh findings
 
 - I spent a considerable amount of time in the Vulkan doc to understand WebGPU. Needs way more documentation.
-- The whole adapter / device comes directly from Vulkan, but Im not sure it is adapted. Oh well, its only one line of complication so...
+- Extensive vocabulary to acquire, in particular binding, locations, slots, indexes... they all mean "id", but it is hard to track back which one is which one
+- Some ids are only the key in a layout definition and not explicit ids. Makes the whole code brittle when adding / removing buffers.
+- The whole adapter / device comes directly from Vulkan, but I couldnt map a use case where it is useful to have those 2 concepts. Oh well, its only a couple of lines of complication so...
 - no mip map generation afaik. I need to test min and mag to see how it goes
 - Needs Chrome Canary and a flag to run
 - Some community members are very aggressive in their position on Github or chat - not used to that coming from React
