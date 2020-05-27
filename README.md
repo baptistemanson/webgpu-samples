@@ -4,7 +4,11 @@ The [WebGPU Samples](//austineng.github.io/webgpu-samples/) are a set of SPIR-V 
 
 These samples run in Chrome Canary behind the flag `--enable-unsafe-webgpu`.
 
-I added my comments and some design notes
+I added my comments and some design notes.
+
+Overall it was a 5 out of 5 experience for such a project, and I shared meh findings just to keep digging.
+
+I was able to create my own renders within hours. With more tooling, it could be minutes.
 
 ## Cool findings
 
@@ -22,6 +26,7 @@ I added my comments and some design notes
 - Team is very accessible on matrix.org
 - its fast, even the client side spir v compilation was fast lol.
 - Examples are in typescript. It really helps to have types here.
+- Threejs, Babylon will still be relevant.
 
 ## Meh findings
 
